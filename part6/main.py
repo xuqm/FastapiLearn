@@ -1,4 +1,4 @@
-from fastapi import Path
+from fastapi import Body
 from pydantic import BaseModel
 
 from part6 import app
@@ -16,16 +16,70 @@ class Item(BaseModel):
     tax: float = None
 
 
-@app.put("/items/{item_id}")
-async def update_item(
-    *,
-    item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
-    q: str = None,
-    item: Item = None,
+class User(BaseModel):
+    username: str
+    full_name: str = None
+
+
+@app.put("/items1/{item_id}")
+async def update_item1(*, item_id: int, item: Item, user: User):
+    results = {"item_id": item_id, "item": item, "user": user}
+    return results
+
+
+"""
+{
+  "item": {
+    "name": "string",
+    "description": "string",
+    "price": 0,
+    "tax": 0
+  },
+  "user": {
+    "username": "string",
+    "full_name": "string"
+  },
+  "importance": 1
+}
+"""
+
+
+# Body body参数验证
+@app.put("/items2/{item_id}")
+async def update_item2(
+        *,
+        item_id: int,
+        item: Item,
+        user: User,
+        importance: int = Body(..., gt=0),
+        q: str = None
 ):
-    results = {"item_id": item_id}
+    results = {"item_id": item_id, "item": item, "user": user, "importance": importance}
     if q:
         results.update({"q": q})
-    if item:
-        results.update({"item": item})
+    return results
+
+
+"""
+{
+  "name": "string",
+  "description": "string",
+  "price": 0,
+  "tax": 0
+}
+=======  embed=True
+{
+  "item": {
+    "name": "string",
+    "description": "string",
+    "price": 0,
+    "tax": 0
+  }
+}
+"""
+
+
+@app.put("/items3/{item_id}")
+async def update_item3(*, item_id: int, item: Item = Body(..., embed=True)):
+    results = {"item_id": item_id, "item": item}
     return results
